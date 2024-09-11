@@ -1,3 +1,20 @@
+const express = require('express');
+const cors = require('cors'); // Import cors middleware
+const app = express();
+const port = 5000;
+
+// Use CORS middleware to allow requests from all origins
+app.use(cors({
+  origin: '*', // Allows all websites (including localhost) to access the API
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept', 'Authorization'],
+  credentials: false // Set to false if you do not need to send credentials (cookies or HTTP authentication)
+}));
+
+// Middleware for parsing JSON
+app.use(express.json());
+
+// Example route
 global.foodData = require('./db')(function call(err, data, CatData, slideData) {
   if (err) console.log(err);
   global.foodData = data;
@@ -6,27 +23,12 @@ global.foodData = require('./db')(function call(err, data, CatData, slideData) {
   console.log("Slider Data Loaded:", slideData);
 });
 
-const express = require('express');
-const cors = require('cors'); // Import cors
-const app = express();
-const port = 5000;
-
-// Use CORS middleware
-app.use(cors({
-  origin: '*', // Allow all origins
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow specific HTTP methods
-  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept'] // Allow specific headers
-}));
-
-// Middleware for parsing JSON requests
-app.use(express.json());
-
-// Simple route for the root URL
+// Test route
 app.get('/', (req, res) => {
-  res.send('Hello World!');
+  res.send('Hello World, CORS is enabled for all websites!');
 });
 
-// Route for authentication API
+// Auth routes
 app.use('/api/auth', require('./Routes/Auth'));
 
 // Start the server
