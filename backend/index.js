@@ -25,7 +25,7 @@ global.foodData = require('./db')(function call(err, data, CatData, slideData) {
 
 // Test route
 app.get('/', (req, res) => {
-  res.send('Hello World, CORS is enabled for all websites!');
+  res.send(global.foodData);
 });
 
 // Auth routes
