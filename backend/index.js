@@ -1,33 +1,35 @@
-
-global.foodData = require('./db')(function call(err, data, CatData,slideData) {
-  // console.log(data)
-  if(err) console.log(err);
+global.foodData = require('./db')(function call(err, data, CatData, slideData) {
+  if (err) console.log(err);
   global.foodData = data;
   global.foodCategory = CatData;
   global.sliderdata = slideData;
-  console.log("yes:",slideData);
-})
-
-const express = require('express')
-const app = express()
-const port = 5000
-app.use((req, res, next) => {
-  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
-  res.header(
-    "Access-Control-Allow-Headers",
-    "Origin, X-Requested-With, Content-Type, Accept"
-  );
-  next();
+  console.log("Slider Data Loaded:", slideData);
 });
-app.use(express.json())
 
+const express = require('express');
+const cors = require('cors'); // Import cors
+const app = express();
+const port = 5000;
+
+// Use CORS middleware
+app.use(cors({
+  origin: '*', // Allow all origins
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'], // Allow specific HTTP methods
+  allowedHeaders: ['Origin', 'X-Requested-With', 'Content-Type', 'Accept'] // Allow specific headers
+}));
+
+// Middleware for parsing JSON requests
+app.use(express.json());
+
+// Simple route for the root URL
 app.get('/', (req, res) => {
-  res.send('Hello World!')
-})
+  res.send('Hello World!');
+});
 
+// Route for authentication API
 app.use('/api/auth', require('./Routes/Auth'));
 
+// Start the server
 app.listen(port, () => {
-  console.log(`Example app listening on http://localhost:${port}`)
-})
-
+  console.log(`Server is running on http://localhost:${port}`);
+});
