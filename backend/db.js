@@ -3,7 +3,7 @@ require('dotenv').config();
 const mongoURI = process.env.MONGO_URI; // Use the environment variable
 
 module.exports = function (callback) {
-    mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true }, async (err, result) => {
+    mongoose.connect(mongoURI, { useNewUrlParser: true, useUnifiedTopology: true ,connectTimeoutMS: 30000, socketTimeoutMS: 45000, }, async (err, result) => {
         if (err) {
             console.log("---" + err);
             callback(err);
