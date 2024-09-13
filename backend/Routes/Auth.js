@@ -7,144 +7,214 @@ require('dotenv').config();
 const fetch = require('../middleware/fetchdetails');
 const router = express.Router();
 
-const dataApiUrl = process.env.MONGO_DATA_API_URL;
-const apiKey = process.env.MONGO_DATA_API_KEY;
-const jwtSecret = process.env.jwtSecret;
+// Environment Variables
+const jwtSecret = process.env.JWT_SECRET ;
+const mongoDataAPIEndpoint = process.env.MONGO_DATA_API_URL 
+const mongoDataAPIKey = process.env.MONGO_DATA_API_KEY 
+const foodCollection = 'food_items';
+const ordersCollection = 'orders';
 
-const headers = {
-  'Content-Type': 'application/json',
-  'api-key': apiKey
-};
-
-// Create a new user
-router.post('/createuser', [
-  body('email').isEmail(),
-  body('password').isLength({ min: 5 }),
-  body('name').isLength({ min: 3 })
+// Create User
+app.post('/createuser', [
+    body('email').isEmail(),
+    body('password').isLength({ min: 5 }),
+    body('name').isLength({ min: 3 }),
 ], async (req, res) => {
-  let success = false;
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ success, errors: errors.array() });
-  }
-
-  const salt = await bcrypt.genSalt(10);
-  let securePass = await bcrypt.hash(req.body.password, salt);
-
-  try {
-    const response = await axios.post(`${dataApiUrl}/insertOne`, {
-      dataSource: 'Cluster0',
-      database: 'your_db',
-      collection: 'users',
-      document: {
-        name: req.body.name,
-        password: securePass,
-        email: req.body.email,
-        location: req.body.location
-      }
-    }, { headers });
-
-    const data = {
-      user: {
-        id: response.data.insertedId
-      }
-    };
-
-    const authToken = jwt.sign(data, jwtSecret);
-    success = true;
-    res.json({ success, authToken });
-
-  } catch (error) {
-    console.error(error.message);
-    res.status(500).json({ error: "Server Error" });
-  }
-});
-
-// User login
-router.post('/login', [
-  body('email', "Enter a valid email").isEmail(),
-  body('password', "Password cannot be blank").exists()
-], async (req, res) => {
-  let success = false;
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    return res.status(400).json({ errors: errors.array() });
-  }
-
-  const { email, password } = req.body;
-
-  try {
-    const response = await axios.post(`${dataApiUrl}/findOne`, {
-      dataSource: 'Cluster0',
-      database: 'your_db',
-      collection: 'users',
-      filter: { email }
-    }, { headers });
-
-    const user = response.data.document;
-
-    if (!user) {
-      return res.status(400).json({ success, error: "Try logging in with correct credentials" });
+    let success = false;
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ success, errors: errors.array() });
     }
 
-    const pwdCompare = await bcrypt.compare(password, user.password);
-    if (!pwdCompare) {
-      return res.status(400).json({ success, error: "Try logging in with correct credentials" });
+    try {
+        const salt = await bcrypt.genSalt(10);
+        const securePass = await bcrypt.hash(req.body.password, salt);
+
+        // Store the new user in MongoDB using Data API
+        const userPayload = {
+            dataSource: 'Cluster0',
+            database: dbName,
+            collection: 'users',
+            document: {
+                name: req.body.name,
+                password: securePass,
+                email: req.body.email,
+                location: req.body.location,
+            },
+        };
+
+        const userResponse = await axios.post(`${mongoDataAPIEndpoint}/insertOne`, userPayload, {
+            headers: {
+                'Content-Type': 'application/json',
+                'api-key': mongoDataAPIKey,
+            },
+        });
+
+        const data = { user: { id: userResponse.data.insertedId } };
+        const authToken = jwt.sign(data, jwtSecret);
+        success = true;
+        res.json({ success, authToken });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send("Server Error");
     }
-
-    const data = {
-      user: {
-        id: user._id
-      }
-    };
-
-    const authToken = jwt.sign(data, jwtSecret);
-    success = true;
-    res.json({ success, authToken });
-
-  } catch (error) {
-    console.error(error.message);
-    res.status(500).send("Server Error");
-  }
 });
 
-// Fetch user details (Login required)
-router.post('/getuser', fetch, async (req, res) => {
-  try {
-    const userId = req.user.id;
-    const response = await axios.post(`${dataApiUrl}/findOne`, {
-      dataSource: 'Cluster0',
-      database: 'your_db',
-      collection: 'users',
-      filter: { _id: { "$oid": userId } }
-    }, { headers });
+// Login User
+app.post('/login', [
+    body('email').isEmail(),
+    body('password').exists(),
+], async (req, res) => {
+    const { email, password } = req.body;
+    try {
+        // Fetch the user from MongoDB using Data API
+        const userPayload = {
+            dataSource: 'Cluster0',
+            database: dbName,
+            collection: 'users',
+            filter: { email },
+        };
 
-    const user = response.data.document;
-    delete user.password; // Remove password before sending the response
-    res.json(user);
+        const userResponse = await axios.post(`${mongoDataAPIEndpoint}/findOne`, userPayload, {
+            headers: {
+                'Content-Type': 'application/json',
+                'api-key': mongoDataAPIKey,
+            },
+        });
 
-  } catch (error) {
-    console.error(error.message);
-    res.status(500).send("Server Error");
-  }
+        const user = userResponse.data.document;
+        if (!user) {
+            return res.status(400).json({ success: false, error: "Invalid credentials" });
+        }
+
+        const pwdCompare = await bcrypt.compare(password, user.password);
+        if (!pwdCompare) {
+            return res.status(400).json({ success: false, error: "Invalid credentials" });
+        }
+
+        const data = { user: { id: user._id } };
+        const authToken = jwt.sign(data, jwtSecret);
+        res.json({ success: true, authToken });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send("Server Error");
+    }
 });
 
-// Fetch location using lat/long
-router.post('/getlocation', async (req, res) => {
-  try {
-    let lat = req.body.latlong.lat;
-    let long = req.body.latlong.long;
+// Get Food Data using MongoDB Data API
+app.post('/foodData', async (req, res) => {
+    try {
+        const foodDataPayload = {
+            dataSource: 'Cluster0',
+            database: dbName,
+            collection: foodCollection,
+        };
 
-    let location = await axios.get(`https://api.opencagedata.com/geocode/v1/json?q=${lat}+${long}&key=YOUR_OPENCAGE_API_KEY`);
-    const response = location.data.results[0].components;
+        const foodDataResponse = await axios.post(`${mongoDataAPIEndpoint}/find`, foodDataPayload, {
+            headers: {
+                'Content-Type': 'application/json',
+                'api-key': mongoDataAPIKey,
+            },
+        });
 
-    let { village, county, state_district, state, postcode } = response;
-    res.send({ location: `${village}, ${county}, ${state_district}, ${state}, ${postcode}` });
-
-  } catch (error) {
-    console.error(error.message);
-    res.status(500).send("Server Error");
-  }
+        res.json(foodDataResponse.data.documents);
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send("Server Error");
+    }
 });
 
-module.exports = router;
+// Place Order using MongoDB Data API
+app.post('/orderData', async (req, res) => {
+    const data = req.body.order_data;
+    const email = req.body.email;
+    await data.unshift({ Order_date: req.body.order_date });
+
+    try {
+        // Find if email exists
+        const orderFindPayload = {
+            dataSource: 'Cluster0',
+            database: dbName,
+            collection: ordersCollection,
+            filter: { email },
+        };
+
+        const orderFindResponse = await axios.post(`${mongoDataAPIEndpoint}/findOne`, orderFindPayload, {
+            headers: {
+                'Content-Type': 'application/json',
+                'api-key': mongoDataAPIKey,
+            },
+        });
+
+        if (!orderFindResponse.data.document) {
+            // Insert a new order
+            const newOrderPayload = {
+                dataSource: 'Cluster0',
+                database: dbName,
+                collection: ordersCollection,
+                document: {
+                    email,
+                    order_data: [data],
+                },
+            };
+
+            await axios.post(`${mongoDataAPIEndpoint}/insertOne`, newOrderPayload, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'api-key': mongoDataAPIKey,
+                },
+            });
+
+            res.json({ success: true });
+        } else {
+            // Update existing order
+            const updateOrderPayload = {
+                dataSource: 'Cluster0',
+                database: dbName,
+                collection: ordersCollection,
+                filter: { email },
+                update: {
+                    $push: { order_data: data },
+                },
+            };
+
+            await axios.post(`${mongoDataAPIEndpoint}/updateOne`, updateOrderPayload, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'api-key': mongoDataAPIKey,
+                },
+            });
+
+            res.json({ success: true });
+        }
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send("Server Error");
+    }
+});
+
+// Fetch User Orders using MongoDB Data API
+app.post('/myOrderData', async (req, res) => {
+    try {
+        const email = req.body.email;
+
+        const myOrderPayload = {
+            dataSource: 'Cluster0',
+            database: dbName,
+            collection: ordersCollection,
+            filter: { email },
+        };
+
+        const orderResponse = await axios.post(`${mongoDataAPIEndpoint}/findOne`, myOrderPayload, {
+            headers: {
+                'Content-Type': 'application/json',
+                'api-key': mongoDataAPIKey,
+            },
+        });
+
+        res.json({ orderData: orderResponse.data.document });
+    } catch (error) {
+        console.error(error.message);
+        res.status(500).send("Server Error");
+    }
+});
