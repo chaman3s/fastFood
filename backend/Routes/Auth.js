@@ -11,6 +11,7 @@ const jwtSecret = process.env.jwtSecret;
 
 const dataApiUrl = process.env.MONGO_DATA_API_URL;
 const dataApiKey = process.env.MONGO_DATA_API_KEY;
+const location_API_KEY= process.env.location_API_KEY;
 
 const headers = {
   'Content-Type': 'application/json',
@@ -157,7 +158,7 @@ router.post('/getuser', fetch, async (req, res) => {
 router.post('/getlocation', async (req, res) => {
   try {
     const { lat, long } = req.body.latlong;
-    const location = await axios.get(`https://api.opencagedata.com/geocode/v1/json?q=${lat}+${long}&key=YOUR_OPENCAGE_API_KEY`);
+    const location = await axios.get(`https://api.opencagedata.com/geocode/v1/json?q=${lat}+${long}&key=${location_API_KEY}`);
     const response = location.data.results[0].components;
     const { village, county, state_district, state, postcode } = response;
     const fullLocation = `${village}, ${county}, ${state_district}, ${state}\n${postcode}`;

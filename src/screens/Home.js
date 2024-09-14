@@ -12,7 +12,7 @@ export default function Home() {
 
   const loadFoodItems = async () => {
     try {
-      let response = await fetch("https://fast-food-zeta-hazel.vercel.app/api/auth/foodData", {
+      let response = await fetch("https://fast-food-zeta-hazel.vercel.app/api/food/getfoodData", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -36,61 +36,63 @@ export default function Home() {
     <div>
       <Navbar />
       <div>
-        <div id="carouselExampleFade" className="carousel slide carousel-fade" data-bs-ride="carousel">
-          <div className="carousel-inner" id="carousel">
-            <div className="carousel-caption" style={{ zIndex: 9 }}>
-              <div className="d-flex justify-content-center">
-                <input
-                  className="form-control me-2 w-75 bg-white text-dark"
-                  type="search"
-                  placeholder="Search in here..."
-                  aria-label="Search"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                />
-                <button
-                  className="btn text-white bg-danger"
-                  onClick={() => setSearch('')}
-                >
-                  X
-                </button>
-              </div>
-            </div>
-            {slides.length > 0 ? (
-              slides.map((data, index) => (
-                <div key={index} className={index === 0 ? 'carousel-item active' : 'carousel-item'}>
-                  <img
-                    src={data.image_url}
-                    className="d-block w-100"
-                    style={{ filter: 'brightness(30%)' }}
-                    alt={data.title}
-                  />
-                </div>
-              ))
-            ) : (
-              <div>No slides available</div>
-            )}
-          </div>
-          <button
-            className="carousel-control-prev"
-            type="button"
-            data-bs-target="#carouselExampleFade"
-            data-bs-slide="prev"
-          >
-            <span className="carousel-control-prev-icon" aria-hidden="true"></span>
-            <span className="visually-hidden">Previous</span>
-          </button>
-          <button
-            className="carousel-control-next"
-            type="button"
-            data-bs-target="#carouselExampleFade"
-            data-bs-slide="next"
-          >
-            <span className="carousel-control-next-icon" aria-hidden="true"></span>
-            <span className="visually-hidden">Next</span>
+  <div id="carouselExampleFade" className="carousel slide carousel-fade" data-bs-ride="carousel">
+    <div className="carousel-inner" id="carousel">
+      <div className="carousel-caption" style={{ zIndex: 9 }}>
+        <div className="d-flex justify-content-center">
+          <input
+            className="form-control me-2 w-75 bg-white text-dark"
+            type="search"
+            placeholder="Search in here..."
+            aria-label="Search"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+          <button className="btn text-white bg-danger" onClick={() => setSearch('')}>
+            X
           </button>
         </div>
       </div>
+      {slides.length > 0 ? (
+        slides.map((data, index) => (
+          <div key={index} className={index === 0 ? 'carousel-item active' : 'carousel-item'}>
+            <img
+              className="d-block w-100"
+              style={{
+                filter: 'brightness(30%)',
+                width: '100%',   // Make sure it fills the container width
+                height: '400px', // Set a fixed height for the carousel images
+                objectFit: 'cover' // Ensures the images maintain aspect ratio while covering the area
+              }}
+              src={data.image_url}
+              alt={data.title}
+            />
+          </div>
+        ))
+      ) : (
+        <div>No slides available</div>
+      )}
+    </div>
+    <button
+      className="carousel-control-prev"
+      type="button"
+      data-bs-target="#carouselExampleFade"
+      data-bs-slide="prev"
+    >
+      <span className="carousel-control-prev-icon" aria-hidden="true"></span>
+      <span className="visually-hidden">Previous</span>
+    </button>
+    <button
+      className="carousel-control-next"
+      type="button"
+      data-bs-target="#carouselExampleFade"
+      data-bs-slide="next"
+    >
+      <span className="carousel-control-next-icon" aria-hidden="true"></span>
+      <span className="visually-hidden">Next</span>
+    </button>
+  </div>
+</div>
 
       <div className="container">
         {foodCat.length > 0 ? (

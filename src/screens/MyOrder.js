@@ -13,7 +13,7 @@ export default function MyOrder() {
     }
 
     try {
-      const response = await fetch("https://fast-food-rn0a59qco-chaman3s-projects.vercel.app/api/auth/myOrderData", {
+      const response = await fetch("https://fast-food-rn0a59qco-chaman3s-projects.vercel.app/api/food/myOrderData", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
