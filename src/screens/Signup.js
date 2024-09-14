@@ -20,6 +20,7 @@ export default function Signup() {
     })
     // console.log(latlong)
     let [lat, long] = latlong
+    console.log("Lat:",latlong)
     console.log(lat, long)
     const response = await fetch("https://fast-food-zeta-hazel.vercel.app/api/auth/getlocation", {
       method: 'POST',
@@ -32,7 +33,7 @@ export default function Signup() {
     const { location } = await response.json()
     console.log(location);
     setAddress(location);
-    setCredentials({ ...credentials, [e.target.name]: location })
+    setCredentials({ ...credentials, [e.target.name]:address })
   }
 
   const handleSubmit = async (e) => {
@@ -44,7 +45,7 @@ export default function Signup() {
       headers: {
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ name: credentials.name, email: credentials.email, password: credentials.password, location: credentials.geolocation })
+      body: JSON.stringify({ name: credentials.name, email: credentials.email, password: credentials.password, location: address })
 
     });
     const json = await response.json()
@@ -83,10 +84,10 @@ export default function Signup() {
             <div className="m-3">
               <label htmlFor="address" className="form-label">Address</label>
               <fieldset>
-                <input type="text" className="form-control" name='address' placeholder='"Click below for fetching address"' value={address} onChange={(e)=>setAddress(e.target.value)} aria-describedby="emailHelp" />
+                <input type="text" className="form-control" name='address'  value={address} onChange={(e)=>setAddress(e.target.value)} aria-describedby="emailHelp" />
               </fieldset>
             </div>
-            <div className="m-3">
+            <div   style={{display:"none"}}className="m-3">
               <button type="button" onClick={handleClick} name="geolocation" className=" btn btn-success">Click for current Location </button>
             </div>
             <div className="m-3">

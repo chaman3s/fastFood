@@ -85,7 +85,7 @@ router.post('/getfoodData', async (req, res) => {
       });
   
       if (userOrders.document) {
-        res.json({ orderData: userOrders.document });
+        res.json({ orderData: userOrders.document.order_data });
       } else {
         res.status(404).json({ error: "No orders found" });
       }

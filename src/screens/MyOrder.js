@@ -13,7 +13,7 @@ export default function MyOrder() {
     }
 
     try {
-      const response = await fetch("https://fast-food-rn0a59qco-chaman3s-projects.vercel.app/api/food/myOrderData", {
+      const response = await fetch("https://fast-food-zeta-hazel.vercel.app/api/food/myOrderData", {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -22,7 +22,9 @@ export default function MyOrder() {
       });
 
       const data = await response.json();
-      setOrderData(data.orderData);
+      console.log("myorder:",data);
+      setOrderData(data);
+      console.log("order:",orderData);
     } catch (error) {
       console.error('Error fetching order data:', error);
     }
@@ -41,7 +43,7 @@ export default function MyOrder() {
           {orderData.length > 0 ? (
             orderData.map((order, index) => (
               <div key={index} className="w-100">
-                {order.slice(0).reverse().map((item, idx) => (
+                {order.Order_date.slice(0).reverse().map((item, idx) => (
                   <React.Fragment key={idx}>
                     {item[0].Order_date ? (
                       <div className="m-auto mt-5">
