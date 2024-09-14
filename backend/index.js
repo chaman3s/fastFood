@@ -30,7 +30,7 @@ app.get('/', (req, res) => {
 
 // Auth routes
 app.use('/api/auth', require('./Routes/Auth'));
-
+app.use('/api/food', require('./Routes/foodRoutes'));
 // Start the server
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
