@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Footer from '../components/Footer';
 import Navbar from '../components/Navbar';
 
+
 export default function MyOrder() {
   const [orderData, setOrderData] = useState([]);
 
@@ -22,9 +23,9 @@ export default function MyOrder() {
       });
 
       const data = await response.json();
-      console.log("myorder:",data);
-      setOrderData(data);
-      console.log("order:",orderData);
+      console.log("myorder:", data);
+      setOrderData(data.orderData);
+      console.log("order",orderData);
     } catch (error) {
       console.error('Error fetching order data:', error);
     }
@@ -40,40 +41,48 @@ export default function MyOrder() {
 
       <div className="container">
         <div className="row">
-          {orderData.length > 0 ? (
+         
+          {orderData.length > 0 ?  (
+           
             orderData.map((order, index) => (
               <div key={index} className="w-100">
-                {order.Order_date.slice(0).reverse().map((item, idx) => (
-                  <React.Fragment key={idx}>
-                    {item[0].Order_date ? (
-                      <div className="m-auto mt-5">
-                        <h5>Order Date: {new Date(item[0].Order_date).toLocaleDateString()}</h5>
-                        <hr />
-                      </div>
-                    ) : (
-                      item.map((arrayData, idx) => (
-                        <div key={idx} className="col-12 col-md-6 col-lg-3">
-                          <div className="card mt-3" style={{ width: '16rem', maxHeight: '360px' }}>
-                            <img
-                              src={arrayData.img}
-                              className="card-img-top"
-                              alt={arrayData.name}
-                              style={{ height: '120px', objectFit: 'fill' }}
-                            />
-                            <div className="card-body">
-                              <h5 className="card-title">{arrayData.name}</h5>
-                              <div className="container w-100 p-0" style={{ height: '38px' }}>
-                                <span className="m-1">Qty: {arrayData.qty}</span>
-                                <span className="m-1">Size: {arrayData.size}</span>
-                                <span className="d-inline ms-2 h-100 w-20 fs-5">₹{arrayData.price}/-</span>
-                              </div>
+                {/* Display the order date */}
+                {console.log("ok",)}
+                <div className="m-auto mt-5">
+                  {console.log("check",order)}
+                  <h5>Order Date: {new Date(order.Order_date).toLocaleDateString()}</h5>
+                  <hr />
+                </div>
+
+                {/* Display the order items */}
+                <div className="row">
+                
+                  {console.log("oklength", Object.keys(order).length)}
+                  {
+                    Object.values(order).map((item, idx) =>  (
+                     idx < Object.values(order).length - 1 ? (
+                      <div key={idx} className="col-12 col-md-6 col-lg-3">
+                        <div className="card mt-3" style={{ width: '16rem', maxHeight: '360px' }}>
+                          <img
+                            src={item.img || 'defaultImageURL'} // Use item.img or provide a default image URL
+                            className="card-img-top"
+                            alt={item.name}
+                            style={{ height: '120px', objectFit: 'fill' }}
+                          />
+                          <div className="card-body">
+                            <h5 className="card-title">{item.name}</h5>
+                            <div className="container w-100 p-0" style={{ height: '38px' }}>
+                              <span className="m-1">Qty: {item.qty}</span>
+                              <span className="m-1">Size: {item.size}</span>
+                              <span className="d-inline ms-2 h-100 w-20 fs-5">₹{item.price}/-</span>
                             </div>
                           </div>
                         </div>
-                      ))
-                    )}
-                  </React.Fragment>
-                ))}
+                      </div>
+                    ) : null
+                    ))}
+                  
+                </div>
               </div>
             ))
           ) : (
